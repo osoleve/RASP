@@ -1,23 +1,22 @@
-from antlr4 import CommonTokenStream, InputStream
 from collections.abc import Iterable
 
-from zzantlr.RASPLexer import RASPLexer
-from zzantlr.RASPParser import RASPParser
-from zzantlr.RASPVisitor import RASPVisitor
-
-from Environment import Environment, UndefinedVariable, ReservedName
-from FunctionalSupport import UnfinishedSequence, UnfinishedSelect, Unfinished
+from antlr4 import CommonTokenStream, InputStream
+from Environment import Environment, ReservedName, UndefinedVariable
 from Evaluator import (
+    ArgsError,
     Evaluator,
+    JustVal,
     NamedVal,
     NamedValList,
-    JustVal,
     RASPFunction,
-    ArgsError,
     RASPTypeError,
     RASPValueError,
 )
+from FunctionalSupport import Unfinished, UnfinishedSelect, UnfinishedSequence
 from Support import Select, Sequence, lazy_type_check
+from zzantlr.RASPLexer import RASPLexer
+from zzantlr.RASPParser import RASPParser
+from zzantlr.RASPVisitor import RASPVisitor
 
 encoder_name = "s-op"
 
@@ -596,23 +595,39 @@ def print_seq(
 def print_select(example, select, extra_pref=""):
     # .replace("\n","\n\t\t\t")
     def nice_matrix_line(m):
-        return " ".join(chr(0x25a0) if v else " " for v in m)
-    
+        return " ".join(chr(0x25A0) if v else " " for v in m)
+
     offset = "\t\t\t"
-    
+
     max_elem_len = max(map(len, map(str, example)))
     if max_elem_len > 1:
         padded_elems = [f"{elem: >{max_elem_len}}" for elem in example]
         for i in range(max_elem_len):
-            print(extra_pref, f"{offset}    "," "*(max_elem_len-2), " ".join(e[i] for e in padded_elems))
-        print(extra_pref, f"{offset}    "," "*(max_elem_len-2), " ".join("-" for _ in example))
+            print(
+                extra_pref,
+                f"{offset}    ",
+                " " * (max_elem_len - 2),
+                " ".join(e[i] for e in padded_elems),
+            )
+        print(
+            extra_pref,
+            f"{offset}    ",
+            " " * (max_elem_len - 2),
+            " ".join("-" for _ in example),
+        )
     else:
         print(extra_pref, f"{offset}    ", " ".join(str(v) for v in example))
         print(extra_pref, f"{offset}    ", " ".join("-" for _ in example))
 
     matrix = select.get_vals()
     [
-        print(extra_pref, offset, f"{elem: >{max_elem_len}}", "|", nice_matrix_line(matrix[m]))
+        print(
+            extra_pref,
+            offset,
+            f"{elem: >{max_elem_len}}",
+            "|",
+            nice_matrix_line(matrix[m]),
+        )
         for elem, m in zip(example, matrix)
     ]
 
