@@ -264,6 +264,10 @@ class Evaluator:
 			return -uexpr
 		if uop == "+":
 			return +uexpr
+		if uop == "atoi":
+			return zipmap(uexpr, lambda c: int(c), name="atoi")
+		if uop == "itoa":
+			return zipmap(uexpr, lambda c: str(c), name="itoa")
 		if uop =="round":
 			return round(uexpr)
 		if uop == "indicator":
