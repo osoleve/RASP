@@ -38,7 +38,7 @@ expr
  												//this is actually not an expression, make sure such cases 
 												// get caught and handled properly
  | uop=('not'|'-'|'+') uexpr=expr
- | uop=('round'|'indicator') '(' uexpr=expr ')'
+ | uop=('round'|'indicator'|'atoi'|'itoa') '(' uexpr=expr ')'
  | left=expr bop='^' right=expr
  | left=expr bop=('*'|'/') right=expr
  | left=expr bop='%' right=expr
