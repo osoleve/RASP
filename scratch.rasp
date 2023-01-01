@@ -1,0 +1,93 @@
+set example ["BOS^", 1, 2, 3, 0, 2, 3, 4, 5, 0, 1, 2, 3, "EOS$", "PAD_", "PAD_"]
+
+BOS = "BOS^"; #beginning of sequence
+EOS = "EOS$"; #end of sequence
+SEP = "SEP|"; #separator
+PAD = "PAD_"; #padding
+
+is_BOS = select(tokens, BOS, ==);
+_is_EOS = select(tokens, EOS, ==);
+_is_SEP = select(tokens, SEP, ==);
+_is_PAD = select(tokens, PAD, ==);
+_sym_is_BOS = select(BOS, tokens, ==);
+_sym_is_EOS = select(EOS, tokens, ==);
+_sym_is_SEP = select(SEP, tokens, ==);
+_sym_is_PAD = select(PAD, tokens, ==);
+k_seq_attend = not (_is_PAD or _is_EOS or _is_SEP or is_BOS);
+q_seq_attend = not(_sym_is_PAD or _sym_is_EOS or _sym_is_SEP or _sym_is_BOS);
+seq_attend = k_seq_attend and q_seq_attend;
+seq_mask = round(aggregate(seq_attend, 1));
+
+def sel_width(sel) {
+	sel = sel or is_BOS;
+    inv_width = aggregate(sel, indicator(tokens == BOS));
+	return (round(1 / inv_width) - 1);
+}
+
+causal = select(indices, indices, <=);
+eq = select(tokens, tokens, ==);
+lt = select(tokens, tokens, <);
+gt = select(tokens, tokens, >);
+before = select(indices, indices, <);
+after = select(indices, indices, >);
+
+def _index(seq, i) { 
+  return aggregate(select(indices, i, ==), seq); 
+}
+
+def index(i) {
+    return _index(tokens, i);
+}
+
+def _first(seq, char) {
+  return aggregate(select_from_first(seq, char), indices);
+}
+
+def first(char) {
+    return _first(tokens, char);
+}
+
+def _add(seq, i) {
+    _seq = atoi(seq if seq_mask == 1 else "-9");
+    _seq = itoa(_seq + i);
+    _seq = _seq if seq_mask == 1 else tokens;
+    return _seq;
+}
+
+def add(i) {
+    return _add(tokens, i);
+}
+
+inc = _add(tokens, 1);
+dec = _add(tokens, -1);
+
+def shft(i){
+    return shift(tokens, i, PAD);
+}
+
+seq = tokens;
+#def longest_inc_subseq(seq) {
+    next_char = shift(seq, -1, PAD);
+    prev_char = shift(seq, 1, PAD);
+    
+    prev = select(next_char, inc, ==)
+        and select(indices, indices, ==)
+        and seq_attend;
+    next = select(prev_char, dec, ==) 
+        and select(indices, indices, ==) 
+        and seq_attend;
+
+    ixs = aggregate((prev or next) and not select(seq, "0", ==), indices);
+
+    gt2 = (
+            (select(shift(ixs, -1, -2), (ixs + 1), ==) 
+            or select(shift(ixs,  1, -2), (ixs - 1), ==))
+        ) 
+        and select(indices, indices, ==) 
+        and seq_attend;
+    gt2 = aggregate(gt2, indices);
+
+    w = sel_width(select(gt2, gt2, ==) and select(gt2, 0, >));
+    #return _ixs;#index(sort(w, -(w)), 0) + 1;
+#}
+
