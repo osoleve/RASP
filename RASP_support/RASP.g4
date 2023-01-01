@@ -27,7 +27,7 @@ assignsAndCommentsList : first=assign ';' Comment? (cont=assignsAndCommentsList)
 						| Comment (cont=assignsAndCommentsList)?;
 returnStatement : 'return' res=exprsList ';';
 idsList : first=ID (',' cont=idsList)?;
-aggregateExpr: 'aggregate(' sel=expr ',' seq=expr (',' default=expr)? ')';
+aggregateExpr: (':agg'|'aggregate') '(' sel=expr ',' seq=expr (',' default=expr)? ')';
 atom : anint=PosInt | afloat=Float | astring=String; 
 
 
@@ -44,7 +44,9 @@ expr
  | left=expr bop='%' right=expr
  | left=expr bop=('+'|'-') right=expr
  | left=expr bop=('=='|'<='|'>='|'>'|'<') right=expr
- | 'select(' key=expr ','  query=expr ',' selop=('=='|'<'|'>'|'>='|'<='|'!=') ')'
+ | (':sel'|'select') '(' ((key=expr ','  query=expr ',' selop=('=='|'<'|'>'|'>='|'<='|'!=')
+                         |key=expr selop=('=='|'<'|'>'|'>='|'<='|'!=') query=expr))
+                     ')'
  | left=expr bop=('and'|'or') right=expr
  | res1=expr 'if' cond=expr 'else' res2=expr
  | var=ID 
