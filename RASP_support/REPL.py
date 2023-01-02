@@ -20,6 +20,18 @@ from zzantlr.RASPVisitor import RASPVisitor
 
 encoder_name = "s-op"
 
+HEADER = "RASP 0.0 After Dark 🐙" # 
+ATTENTION_SQUARE = "■" # 🧊🦀
+BLANK = " "
+KEY = "🔑"
+QUERY = "❓"
+BOS = "^"
+EOS = "$"
+SEP = "|"
+PAD = "_"
+
+
+debug = False
 
 class ResultToPrint:
     def __init__(self, res, to_print):
@@ -37,9 +49,6 @@ class LazyPrint:
 class StopException(Exception):
     def __init__(self):
         super().__init__()
-
-
-debug = False
 
 
 def debprint(*a, **kw):
@@ -72,14 +81,18 @@ def formatstr(res):
 class REPL:
     def __init__(self):
         self.env = Environment(name="console")
-        self.sequence_running_example = "hello"
-        self.selector_running_example = "hello"
+        self.sequence_running_example = self.prep_string("Hello, World!", 16)
+        self.selector_running_example = self.prep_string("Hello, World!", 16)
         self.sequence_prints_verbose = False
         self.show_sequence_examples = True
         self.show_selector_examples = True
         self.results_to_print = []
         self.print_welcome()
         self.load_base_libraries_and_make_base_env()
+    
+    @staticmethod
+    def prep_string(s, head_width=16):
+        return [BOS,*s,EOS,*[PAD for _ in range(head_width - len(s) - 2)]]
 
     def load_base_libraries_and_make_base_env(self):
         self.silent = True
@@ -106,8 +119,10 @@ class REPL:
             self.selector_running_example = example
 
     def print_welcome(self):
-        print("RASP 0.0")
-        print("running example is:", self.sequence_running_example)
+        print(HEADER)
+        print(f"Running example is: {self.sequence_running_example}")
+        print(f"Special Tokens:\n\t{BOS=}\n\t{EOS=}\n\t{SEP=}\n\t{PAD=}")
+
 
     def print_just_val(self, justval):
         val = justval.val
@@ -595,7 +610,7 @@ def print_seq(
 def print_select(example, select, extra_pref=""):
     # .replace("\n","\n\t\t\t")
     def nice_matrix_line(m):
-        return " ".join(chr(0x25A0) if v else " " for v in m)
+        return " ".join(ATTENTION_SQUARE if v else BLANK for v in m) + " ┊"
 
     offset = "\t\t\t"
 
@@ -604,20 +619,21 @@ def print_select(example, select, extra_pref=""):
         padded_elems = [f"{elem: >{max_elem_len}}" for elem in example]
         for i in range(max_elem_len):
             print(
-                extra_pref,
-                f"{offset}    ",
-                " " * (max_elem_len - 2),
-                " ".join(e[i] for e in padded_elems),
+                extra_pref +
+                f"{offset}    " +
+                " " * (max_elem_len - 2) +
+                " ".join(e[i] for e in padded_elems)
             )
-        print(
-            extra_pref,
-            f"{offset}    ",
-            " " * (max_elem_len - 2),
-            " ".join("-" for _ in example),
+        print (
+            extra_pref +
+            f"{offset}    " +
+            " " * (max_elem_len - 2) +
+            "┼" +
+            "".join("══" for _ in example)
         )
     else:
-        print(extra_pref, f"{offset}    ", " ".join(str(v) for v in example))
-        print(extra_pref, f"{offset}    ", " ".join("-" for _ in example))
+        print(extra_pref, f"{offset}     "+" ".join(str(v) for v in example))
+        print(extra_pref, f"{offset}   ╭{''.join('╌╌' for _ in example)}╌╮")
 
     matrix = select.get_vals()
     [
@@ -625,11 +641,15 @@ def print_select(example, select, extra_pref=""):
             extra_pref,
             offset,
             f"{elem: >{max_elem_len}}",
-            "|",
+            "┊ "+
             nice_matrix_line(matrix[m]),
         )
         for elem, m in zip(example, matrix)
     ]
+    print(extra_pref,
+            offset,
+            f"{' '*max_elem_len}",
+            "╰╌╌"+f"{'╌'.join(['╌' for _ in example])}╯")
 
 
 if __name__ == "__main__":
