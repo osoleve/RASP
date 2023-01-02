@@ -11,7 +11,7 @@ toggleSeqVerbose : 'full seq display' switch=('on'|'off');
 toggleExample : subset=('s-op'|'selector')? 'examples' switch=('on'|'off'); 
 exit : 'exit()' | 'exit' | 'quit' | 'quit()' ;
 
-loadFile : 'load' filename=String;
+loadFile : ('load'|':load'|':l') filename=String;
 assign : var=idsList '=' val=exprsList;
 draw : 'draw' '(' unf=expr (',' inputseq=expr)?')';
 exprsList : first=expr (',' cont=exprsList)?; 
@@ -27,16 +27,22 @@ assignsAndCommentsList : first=assign ';' Comment? (cont=assignsAndCommentsList)
 						| Comment (cont=assignsAndCommentsList)?;
 returnStatement : 'return' res=exprsList ';';
 idsList : first=ID (',' cont=idsList)?;
-aggregateExpr: (':agg'|'aggregate') '(' sel=expr ',' seq=expr (',' default=expr)? ')';
-atom : anint=PosInt | afloat=Float | astring=String; 
+atom : anint=PosInt | afloat=FixedPoint | astring=String; 
 
+//****************************** Aggregate *****************************
+aggSym: ('aggregate'|':agg'|':a'|':value'|':v'|':@');
+aggregateExpr: (aggSym '(' sel=expr ',' seq=expr (',' default=expr)? ')')
+            |  ('<' sel=expr ',' seq=expr (',' default=expr)? '>')
+; 
 
+//******************************** expr ******************************** 
 expr
  : '(' bracketed=expr ')'
- | indexable=expr '[' index=expr ']'  // just fails if bad index
- | unfORfun=expr '(' (inputexprs=exprsList)? ')' // bit problematic cause if unfORfun is an unf 
- 												//this is actually not an expression, make sure such cases 
-												// get caught and handled properly
+ // bit problematic cause if unfORfun is an unf
+ // this is actually not an expression, make sure such cases 
+ // get caught and handled properly
+ | unfORfun=expr '(' (inputexprs=exprsList)? ')'  	
+//******************************** ops *********************************						
  | uop=('not'|'-'|'+') uexpr=expr
  | uop=('round'|'indicator'|'atoi'|'itoa') '(' uexpr=expr ')'
  | left=expr bop='^' right=expr
@@ -44,15 +50,17 @@ expr
  | left=expr bop='%' right=expr
  | left=expr bop=('+'|'-') right=expr
  | left=expr bop=('=='|'<='|'>='|'>'|'<') right=expr
- | (':sel'|'select') '(' ((key=expr ','  query=expr ',' selop=('=='|'<'|'>'|'>='|'<='|'!=')
-                         |key=expr selop=('=='|'<'|'>'|'>='|'<='|'!=') query=expr))
-                     ')'
- | left=expr bop=('and'|'or') right=expr
+ //****************************** Selector *****************************
+ | ('select'|':sel'|':s'|':$') 
+    '(' (key=expr ',' query=expr ',' selop=('=='|'<'|'>'|'>='|'<='|'!=')) ')'
+ | '{' key=expr selop=('=='|'<'|'>'|'>='|'<='|'!=') query=expr '}'
+ //******************************** Rest ********************************
+ | aggregate=aggregateExpr
  | res1=expr 'if' cond=expr 'else' res2=expr
+ | indexable=expr '[' index=expr ']'  // just fails if bad index
  | var=ID 
  | standalone=atom
  | aList | aDict
- | aggregate=aggregateExpr
  | 'range(' rangevals=exprsList ')'
  | listcomp=listCompExpr
  | dictcomp=dictCompExpr
@@ -71,7 +79,7 @@ dictCompExpr : '{' key=expr ':' val=expr 'for' iterator=idsList 'in' iterable=ex
 // bools are stored in the environment as reserved words, don't need to be in the grammar (only 2 vals)
 // (recognised by the grammar as an identifier)
 
-Float : PosInt'.'PosInt ;// no fancy floats here sir, this is a simple operation
+FixedPoint : PosInt'.'PosInt ;// no fancy floats here sir, this is a simple operation
 PosInt : [0-9]+ ;
 // CommentContent: ~[\r\n]+ ; // keep going until newline
 String: '"' ~["\r\n]* '"';
