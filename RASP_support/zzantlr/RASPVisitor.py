@@ -119,13 +119,18 @@ class RASPVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by RASPParser#aggregateExpr.
-    def visitAggregateExpr(self, ctx:RASPParser.AggregateExprContext):
+    # Visit a parse tree produced by RASPParser#atom.
+    def visitAtom(self, ctx:RASPParser.AtomContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by RASPParser#atom.
-    def visitAtom(self, ctx:RASPParser.AtomContext):
+    # Visit a parse tree produced by RASPParser#aggSym.
+    def visitAggSym(self, ctx:RASPParser.AggSymContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by RASPParser#aggregateExpr.
+    def visitAggregateExpr(self, ctx:RASPParser.AggregateExprContext):
         return self.visitChildren(ctx)
 
 

@@ -206,21 +206,30 @@ class RASPListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by RASPParser#aggregateExpr.
-    def enterAggregateExpr(self, ctx:RASPParser.AggregateExprContext):
-        pass
-
-    # Exit a parse tree produced by RASPParser#aggregateExpr.
-    def exitAggregateExpr(self, ctx:RASPParser.AggregateExprContext):
-        pass
-
-
     # Enter a parse tree produced by RASPParser#atom.
     def enterAtom(self, ctx:RASPParser.AtomContext):
         pass
 
     # Exit a parse tree produced by RASPParser#atom.
     def exitAtom(self, ctx:RASPParser.AtomContext):
+        pass
+
+
+    # Enter a parse tree produced by RASPParser#aggSym.
+    def enterAggSym(self, ctx:RASPParser.AggSymContext):
+        pass
+
+    # Exit a parse tree produced by RASPParser#aggSym.
+    def exitAggSym(self, ctx:RASPParser.AggSymContext):
+        pass
+
+
+    # Enter a parse tree produced by RASPParser#aggregateExpr.
+    def enterAggregateExpr(self, ctx:RASPParser.AggregateExprContext):
+        pass
+
+    # Exit a parse tree produced by RASPParser#aggregateExpr.
+    def exitAggregateExpr(self, ctx:RASPParser.AggregateExprContext):
         pass
 
 
