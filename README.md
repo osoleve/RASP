@@ -1,4 +1,28 @@
-# RASP 
+# RASP After Dark 🤖
+This is my fork of RASP with some adjustments I wanted, and all of the interface tweaks I feel like making.  
+RASP is a language for writing algorithms the way they may be implemented in a transformers architecture (or even learned by a transformer trained on the task).  
+The original readme follows below and includes some usage information. Displayed examples will appear different in RASP AD but the results are the same.
+
+``` 
+Like what you see? Citation details available at the bottom, all credit goes to the original authors.  
+"This repo is an implementation of RASP as presented in the paper "Thinking Like Transformers" (https://arxiv.org/abs/2106.06981)."
+```
+
+Almost fully compatible with base RASP with the following exceptions. If you ignore these, it's just RASP as usual:
+- Selectors:
+	- added alias ":s"
+	- secondary syntax:  
+		`{key == query};` vs `select(key, query, ==);`
+- Aggregate: 
+	- added alias ":a"
+	- secondary syntax:  
+		`<selector, value [, optional]>;` vs `aggregate(selector, value, optional);`
+- Additional built-ins:
+	- `atoi`
+	- `itoa` 
+
+
+# Original README:
 
 ## Setup
 #### Mac or Linux
@@ -12,7 +36,8 @@ After having set up, if you are in mac/linux, you can run `./rasp.sh` to start t
 Use Ctrl+C to quit a partially entered command, and Ctrl+D to exit the REPL.
 
 #### Initial Environment
-RASP starts with the base s-ops: `tokens`, `indices`, and `length`. It also has the base functions `select`, `aggregate`, and `selector_width` as described in the paper, a selector `full_s` created through `select(1,1,==)` that creates a "full" attention pattern, and several other library functions (check out `RASP_support/rasplib.rasp` to see them). 
+RASP starts with the base s-ops: `tokens`, `indices`, and `length`. It also has the base functions `select`, `aggregate`, and `selector_width` as described in the paper, a selector `full_s` created through `select(1,1,==)` that creates a "full" attention pattern, and several other library functions (check out `RASP_support/rasplib.rasp` to see them).  
+_Side note from Oso: `RASP_support/afterdark.rasp` has a few more things baked in to get you started and may have more added._
 
 Additionally, the REPL begins with a base example, `"hello"`, on which it shows the output for each created s-op or selector. This example can be changed, and toggled on and off, through commands to the REPL.
 
