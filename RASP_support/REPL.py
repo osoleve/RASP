@@ -20,7 +20,6 @@ from zzantlr.RASPVisitor import RASPVisitor
 
 encoder_name = "s-op"
 
-HEADER = "RASP 0.0 After Dark 🐙" # 
 ATTENTION_SQUARE = "■" # 🧊🦀
 BLANK = " "
 KEY = "🔑"
@@ -29,6 +28,12 @@ BOS = "^"
 EOS = "$"
 SEP = "|"
 PAD = "_"
+
+HEADER = f"""{chr(10)*100}RASP 0.0 - After Dark 🐙{chr(10)*2}
+Special Tokens:\n\t{BOS=}\n\t{EOS=}\n\t{SEP=}\n\t{PAD=}\
+{chr(10)*5}"""
+
+PROMPT = "🤖 >"
 
 
 debug = False
@@ -81,8 +86,8 @@ def formatstr(res):
 class REPL:
     def __init__(self):
         self.env = Environment(name="console")
-        self.sequence_running_example = self.prep_string("Hello, World!", 16)
-        self.selector_running_example = self.prep_string("Hello, World!", 16)
+        self.sequence_running_example = self.add_special_tokens("Hello, World!", 16)
+        self.selector_running_example = self.add_special_tokens("Hello, World!", 16)
         self.sequence_prints_verbose = False
         self.show_sequence_examples = True
         self.show_selector_examples = True
@@ -91,8 +96,8 @@ class REPL:
         self.load_base_libraries_and_make_base_env()
     
     @staticmethod
-    def prep_string(s, head_width=16):
-        return [BOS,*s,EOS,*[PAD for _ in range(head_width - len(s) - 2)]]
+    def add_special_tokens(s, head_width=16):
+        return BOS+s+EOS+"".join([PAD for _ in range(head_width - len(s) - 2)])
 
     def load_base_libraries_and_make_base_env(self):
         self.silent = True
@@ -104,11 +109,11 @@ class REPL:
         self.env.storing_in_constants = (
             True  # make the library-loaded variables and functions not-overwriteable
         )
-        for l in ["RASP_support/rasplib"]:
-            self.run_given_line('load "' + l + '";')
+        self.run_given_line("tokens=tokens_str;")
+        for l in ["rasplib", "afterdark"]:
+            self.run_given_line('load "' + f"RASP_support/{l}" + '";')
             self.base_env = self.env.snapshot()
         self.env.storing_in_constants = False
-        self.run_given_line("tokens=tokens_str;")
         self.base_env = self.env.snapshot()
         self.silent = False
 
@@ -120,9 +125,7 @@ class REPL:
 
     def print_welcome(self):
         print(HEADER)
-        print(f"Running example is: {self.sequence_running_example}")
-        print(f"Special Tokens:\n\t{BOS=}\n\t{EOS=}\n\t{SEP=}\n\t{PAD=}")
-
+        print(f"Running example is: {self.sequence_running_example}\n")
 
     def print_just_val(self, justval):
         val = justval.val
@@ -499,7 +502,7 @@ class Stop:
 
 
 class LineReader:
-    def __init__(self, prompt=">>", fromfile=None, given_line=None):
+    def __init__(self, prompt=f"{PROMPT}", fromfile=None, given_line=None):
         self.fromfile = fromfile
         self.given_line = given_line
         self.prompt = prompt + " "

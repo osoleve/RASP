@@ -27,10 +27,10 @@ assignsAndCommentsList : first=assign ';' Comment? (cont=assignsAndCommentsList)
 						| Comment (cont=assignsAndCommentsList)?;
 returnStatement : 'return' res=exprsList ';';
 idsList : first=ID (',' cont=idsList)?;
-atom : anint=PosInt | afloat=FixedPoint | astring=String; 
+atom : anint=PosInt | afloat=Float | astring=String; 
 
 //****************************** Aggregate *****************************
-aggSym: ('aggregate'|':agg'|':a'|':value'|':v'|':@');
+aggSym: ('aggregate'|':a');
 aggregateExpr: (aggSym '(' sel=expr ',' seq=expr (',' default=expr)? ')')
             |  ('<' sel=expr ',' seq=expr (',' default=expr)? '>')
 ; 
@@ -42,6 +42,9 @@ expr
  // this is actually not an expression, make sure such cases 
  // get caught and handled properly
  | unfORfun=expr '(' (inputexprs=exprsList)? ')'  	
+ //****************************** Selector *****************************
+ | ('select'|':s') '(' (key=expr ',' query=expr ',' selop=('=='|'<'|'>'|'>='|'<='|'!=')) ')'
+ | '{' key=expr selop=('=='|'<'|'>'|'>='|'<='|'!=') query=expr '}'
 //******************************** ops *********************************						
  | uop=('not'|'-'|'+') uexpr=expr
  | uop=('round'|'indicator'|'atoi'|'itoa') '(' uexpr=expr ')'
@@ -50,10 +53,7 @@ expr
  | left=expr bop='%' right=expr
  | left=expr bop=('+'|'-') right=expr
  | left=expr bop=('=='|'<='|'>='|'>'|'<') right=expr
- //****************************** Selector *****************************
- | ('select'|':sel'|':s'|':$') 
-    '(' (key=expr ',' query=expr ',' selop=('=='|'<'|'>'|'>='|'<='|'!=')) ')'
- | '{' key=expr selop=('=='|'<'|'>'|'>='|'<='|'!=') query=expr '}'
+ | left=expr bop=('and'|'or') right=expr
  //******************************** Rest ********************************
  | aggregate=aggregateExpr
  | res1=expr 'if' cond=expr 'else' res2=expr
@@ -79,7 +79,7 @@ dictCompExpr : '{' key=expr ':' val=expr 'for' iterator=idsList 'in' iterable=ex
 // bools are stored in the environment as reserved words, don't need to be in the grammar (only 2 vals)
 // (recognised by the grammar as an identifier)
 
-FixedPoint : PosInt'.'PosInt ;// no fancy floats here sir, this is a simple operation
+Float : PosInt'.'PosInt ;// no fancy floats here sir, this is a simple operation
 PosInt : [0-9]+ ;
 // CommentContent: ~[\r\n]+ ; // keep going until newline
 String: '"' ~["\r\n]* '"';
