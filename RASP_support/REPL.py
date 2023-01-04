@@ -20,7 +20,7 @@ from zzantlr.RASPVisitor import RASPVisitor
 
 encoder_name = "s-op"
 
-ATTENTION_SQUARE = "■" # 🧊🦀
+SQUARE = "■" # 🧊🦀
 BLANK = " "
 KEY = "🔑"
 QUERY = "❓"
@@ -33,7 +33,8 @@ HEADER = f"""{chr(10)*100}RASP 0.0 - After Dark 🐙{chr(10)*2}
 Special Tokens:\n\t{BOS=}\n\t{EOS=}\n\t{SEP=}\n\t{PAD=}\
 {chr(10)*5}"""
 
-PROMPT = "🤖 >"
+#PROMPT = "🤖 >"
+PROMPT = ">>"
 
 
 debug = False
@@ -110,7 +111,7 @@ class REPL:
             True  # make the library-loaded variables and functions not-overwriteable
         )
         self.run_given_line("tokens=tokens_str;")
-        for l in ["rasplib", "afterdark"]:
+        for l in ["rasplib"]:
             self.run_given_line('load "' + f"RASP_support/{l}" + '";')
             self.base_env = self.env.snapshot()
         self.env.storing_in_constants = False
@@ -611,13 +612,35 @@ def print_seq(
 
 
 def print_select(example, select, extra_pref=""):
-    # .replace("\n","\n\t\t\t")
     def nice_matrix_line(m):
-        return " ".join(ATTENTION_SQUARE if v else BLANK for v in m) + " ┊"
+        width = sum(map(bool, m))
+        line = " ".join(SQUARE if v else BLANK for v in m)
+        line = line + f" ┊\t | {f'{width:^5}' if width > 0 else ' '*5} |"
+        return line
+
+    def isnum(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
 
     offset = "\t\t\t"
+    matrix = select.get_vals()
+    nonzero_elems = sum(1 if v else 0 for m in matrix for v in matrix[m])
+    sparsity = 1 - nonzero_elems/len(matrix)**2
+    width_header = ""
+    width_style_line = ""
+    if nonzero_elems:
+        width_header = " \t | Width |"
+        width_style_line = "\t | ----- |"
+            
 
-    max_elem_len = max(map(len, map(str, example)))
+    if not all(isinstance(elem[-1], str) and isnum(elem) for elem in example):
+        max_elem_len = max(len(elem) for elem in example)
+    else:
+        max_elem_len = 1
+     
     if max_elem_len > 1:
         padded_elems = [f"{elem: >{max_elem_len}}" for elem in example]
         for i in range(max_elem_len):
@@ -626,19 +649,25 @@ def print_select(example, select, extra_pref=""):
                 f"{offset}    " +
                 " " * (max_elem_len - 2) +
                 " ".join(e[i] for e in padded_elems)
-            )
+            ,end = '')
+            if i == max_elem_len - 1:
+                print(width_header)
+            else:
+                print()
+
         print (
             extra_pref +
             f"{offset}    " +
             " " * (max_elem_len - 2) +
-            "┼" +
-            "".join("══" for _ in example)
+            "╭" +
+            "".join("╌╌" for _ in example)+
+            width_style_line
         )
     else:
-        print(extra_pref, f"{offset}     "+" ".join(str(v) for v in example))
-        print(extra_pref, f"{offset}   ╭{''.join('╌╌' for _ in example)}╌╮")
+        print(extra_pref, f"{offset}     "+" ".join(str(v) for v in example)+width_header)
+        print(extra_pref, f"{offset}   ╭{''.join('╌╌' for _ in example)}╌╮"+width_style_line)
 
-    matrix = select.get_vals()
+    
     [
         print(
             extra_pref,
@@ -647,13 +676,14 @@ def print_select(example, select, extra_pref=""):
             "┊ "+
             nice_matrix_line(matrix[m]),
         )
-        for elem, m in zip(example, matrix)
+        for elem, m in zip(example,matrix)
     ]
     print(extra_pref,
             offset,
             f"{' '*max_elem_len}",
-            "╰╌╌"+f"{'╌'.join(['╌' for _ in example])}╯")
-
+            "╰╌╌"+f"{'╌'.join(['╌' for _ in example])}╯\n",
+            )
+    print(f"\t\t\t{' ' * (max_elem_len + 3)}Sparsity: {100*sparsity:.1f}%\n\n")
 
 if __name__ == "__main__":
     REPL().run()
