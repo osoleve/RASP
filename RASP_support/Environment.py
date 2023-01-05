@@ -30,7 +30,8 @@ class Environment:
 						 "tokens_float":tokens_float,
 						 "indices":indices,
 						 "True":True,
-						 "False":False}
+						 "False":False,
+					  	 "__std":"RASP_support/liboso/"}
 		self.reserved_words=["if","else","not","and","or","out","def","return","range","for","in","zip","len","get"] +\
 										list(self.constant_variables.keys())
 
