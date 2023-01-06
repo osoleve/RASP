@@ -124,7 +124,7 @@ class REPL:
     
     @staticmethod
     def add_special_tokens(s, head_width=16):
-        return BOS+s+EOS+"".join([PAD for _ in range(head_width - len(s) - 2)])
+        return _BOS+s+_EOS+"".join([_PAD for _ in range(head_width - len(s) - 2)])
 
     def load_base_libraries_and_make_base_env(self):
         self.silent = True
@@ -645,7 +645,7 @@ def print_select(example, select, extra_pref=""):
         key_density = f" / {int(100 * key_num/len(m)):>3}%"
         key_density = f'{key_num} {key_density:>7}' if key_num else ' '
 
-        query_num = sum(1 if matrix[j][i] else 0 for j in range(len(m)))
+        query_num = sum(1 if matrix[v][i] else 0 for v in m)
         query_density = f" / {int(100 * query_num/len(m)):>3}%"
         query_density = f'{query_num} {query_density:>7}' if query_num else ' '
         
