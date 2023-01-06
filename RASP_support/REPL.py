@@ -113,8 +113,8 @@ def formatstr(res):
 class REPL:
     def __init__(self):
         self.env = Environment(name="console")
-        self.sequence_running_example = self.add_special_tokens("Hello, World!", 16)
-        self.selector_running_example = self.add_special_tokens("Hello, World!", 16)
+        self.sequence_running_example = self.add_special_tokens("Exeter|", 8)
+        self.selector_running_example = self.add_special_tokens("Exeter|Extreme", 16)
         self.sequence_prints_verbose = False
         self.show_sequence_examples = True
         self.show_selector_examples = True
@@ -645,7 +645,7 @@ def print_select(example, select, extra_pref=""):
         key_density = f" / {int(100 * key_num/len(m)):>3}%"
         key_density = f'{key_num} {key_density:>7}' if key_num else ' '
 
-        query_num = sum(1 if matrix[v][i] else 0 for v in m)
+        query_num = sum(1 if _m[i] else 0 for _m in matrix.values())
         query_density = f" / {int(100 * query_num/len(m)):>3}%"
         query_density = f'{query_num} {query_density:>7}' if query_num else ' '
         
