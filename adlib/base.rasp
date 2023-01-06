@@ -19,6 +19,8 @@ key_seq_mask   = not (_k_is_PAD or _k_is_EOS or _k_is_SEP or _k_is_BOS);
 query_seq_mask = not (_q_is_PAD or _q_is_EOS or _q_is_SEP or _q_is_BOS);
 seq_mask       = key_seq_mask and query_seq_mask;
 seq_bitmask    = round(aggregate(seq_mask, 1));
+attend_data    = key_seq_mask and query_seq_mask;
+ignore_special_tokens = key_seq_mask and query_seq_mask;
 
 # IDK if it's better for the compiler to define these explicitly
 # Or if I can define them in terms of each other
