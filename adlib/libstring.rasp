@@ -1,0 +1,62 @@
+load "adlib";
+load "adlib/libbos";
+
+def add_str_ints(seq, i) {
+    _seq = atoi(seq if seq_bitmask == 1 else "-9");
+    _seq = itoa(_seq + i);
+    _seq = _seq if seq_bitmask == 1 else seq;
+    return _seq;
+}
+
+################################################## Substring
+def _incrementing_subseq_lengths(seq) {
+    #won't work without zeros separating the subseqs
+    #but we split the odds and evens so we'll have them
+    next_char = shift(seq, -1, -2);
+    prev_char = shift(seq,  1, -2);
+    
+    subseq_mask = seq 
+                    if seq+1 == next_char 
+                    or seq-1 == prev_char 
+                else 0;
+
+    #in substring problem we can ensure zeros separate seqs
+    subseq_start = (subseq_mask <= prev_char) or (prev_char == 0);
+    subseq_end   = (subseq_mask > next_char);
+    bos_pos = 0; #first(BOS)
+    boundaries_or_BOS = (subseq_start or subseq_end or (indices == bos_pos));
+
+    # get the subseq_end for each subseq_start and subtract their indices
+    end_per_start = select_next_identical_bos(boundaries_or_BOS) and select(subseq_end, 0, >);
+    run_lengths = aggregate(end_per_start, seq) - seq + 1; 
+    return run_lengths;
+}
+
+def is_substring(seq) {
+    # Does not work for substring of length 1
+    # Just use the easier way for that
+    sep_pos = first(seq, SEP);
+    eos_pos = first(seq, EOS);
+
+    substring_length = eos_pos - sep_pos - 1;
+    string_length    = sep_pos - 1;
+
+    match_region = ignore_special_tokens 
+        and select(indices, sep_pos, >)
+        and select(indices, indices + string_length + 1, <=)
+        and select(indices - substring_length - 1, indices, >=);
+    matches = match_region and select(seq, seq, ==);
+
+    bests = 0;
+    # Check odd and even starting indices separately to ensure a gap
+    for offset in [0, 1] {
+        candidates = round(aggregate(matches and checkerboard(offset), indices));
+        runs = _incrementing_subseq_lengths(candidates);
+        bests = max(bests, runs);
+    }
+    longest = max_val(bests);
+
+    # are there any subsequences found of the right length?
+    return indicator((longest == substring_length) and not (longest == 1));
+}
+################################################## Substring
