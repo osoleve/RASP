@@ -20,12 +20,13 @@ from zzantlr.RASPVisitor import RASPVisitor
 
 encoder_name = "s-op"
 
+RASP_VERSION = "RASP 0.0"
 SQUARE = "■"
 BLANK  = " "
-BOS = "^" #beginning of sequence
-EOS = "$" #end of sequence
-SEP = "|" #separator
-PAD = "_" #padding
+_BOS = "^" #beginning of sequence
+_EOS = "$" #end of sequence
+_SEP = "|" #separator
+_PAD = "_" #padding
 
 
 ASCII = """\
@@ -50,10 +51,16 @@ ASCII = """\
 HEADER = f"""\
 {chr(10)*90}{ASCII}
 
-    RASP 0.0
-{chr(10)*2}
+    {RASP_VERSION} - After Dark Edition
+    
+    :load "adlib"; at any point to load the after dark base library.
+    Rasplib from upstream is still baked in.
+    Other libraries are available in the adlib folder.
+    
+    Happy hacking :)
+
 """
-PROMPT = "∽≻"
+PROMPT = " ∽≻"
 
 
 debug = False
@@ -661,7 +668,7 @@ def print_select(example, select, extra_pref=""):
     matrix = select.get_vals()
     nonzero_elems = sum(1 if v else 0 for m in matrix for v in matrix[m])
     sparsity = 1 - nonzero_elems/len(matrix)**2
-    offset = ' ' * (max_elem_len + 14)
+    offset = ' ' * (max_elem_len + 10)
     side_header = ""
     side_subhead = ""
     side_footer = ""
@@ -669,6 +676,8 @@ def print_select(example, select, extra_pref=""):
         side_header = "        Index     On by Row     On by Col "
         side_subhead  = "    ╭╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮"
         side_footer = "    ╰╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯"
+    
+    print()
      
     if max_elem_len > 1:
         padded_elems = [f"{elem: >{max_elem_len}}" for elem in example]
@@ -713,7 +722,7 @@ def print_select(example, select, extra_pref=""):
             "╰╌╌"+f"{'╌'.join(['╌' for _ in example])}╯"+side_footer+"\n",
             )
     if nonzero_elems:
-        print(f"{' ' * (max_elem_len + 19)}Sparsity: {100*sparsity:.1f}%\n\n")
+        print(f"{offset}Sparsity: {100*sparsity:.1f}%\n\n")
 
 
 if __name__ == "__main__":
