@@ -1,0 +1,59 @@
+load "adlib";
+
+def add_str_ints(seq, i) {
+    _seq = atoi(seq if seq_bitmask == 1 else "-9");
+    _seq = itoa(_seq + i);
+    _seq = _seq if seq_bitmask == 1 else seq;
+    return _seq;
+}
+
+################################################## Substring
+def _incrementing_subseq_lengths(seq) {
+    #won't work without zeros separating the subseqs
+    #but we split the odds and evens so we'll have them
+    pad = -2;
+    next_is_increment = seq+1 == shift(seq, -1, pad);
+    prev_is_decrement = seq-1 == shift(seq,  1, pad);
+    in_incrementing_subseq = next_is_increment or prev_is_decrement;
+    subseq_mask = seq if in_incrementing_subseq else 0;
+
+    #in substring problem we can ensure zeros separate seqs
+    subseq_start = (subseq_mask <= prev_char) or (prev_char == 0);
+    subseq_end   = (subseq_mask > next_char);
+    bos_pos = 0; #first_(_BOS)
+    boundaries_or_BOS = (subseq_start or subseq_end or (indices == bos_pos));
+
+    # get the subseq_end for each subseq_start and subtract their indices
+    end_per_start = _select_next_identical_bos(boundaries_or_BOS) and select(subseq_end, 0, >);
+    run_lengths = aggregate(end_per_start, seq) - seq + 1; 
+    return run_lengths;
+}
+
+def is_substring(seq) {
+    # Does not work for substring of length 1
+    # Just use the easier way for that
+    sep_pos = first(seq, SEP);
+    eos_pos = first(seq, EOS);
+
+    substring_length = eos_pos - sep_pos - 1;
+    string_length    = sep_pos - 1;
+
+    match_region = ignore_special_tokens 
+        and select(indices, sep_pos, >)
+        and select(indices, indices + string_length + 1, <=)
+        and select(indices - substring_length - 1, indices, >=);
+    matches = match_region and select(seq, seq, ==);
+
+    subseqs = 0;
+    for offset in [0, 1] {
+        candidates = matches and _checkerboard(offset);
+        subseqs = max(subseqs, _incrementing_subseq_lengths(round(aggregate(candidates, indices))));
+    }
+
+    # are there any subsequences found of the right length?
+    return indicator(
+        (substring_length in runs) 
+    and (substring_length > 1)
+    );
+}
+################################################## Substring
