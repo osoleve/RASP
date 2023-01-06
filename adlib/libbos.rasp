@@ -1,3 +1,5 @@
+load "adlib";
+
 ####### paper_examples.rasp #######################################
 
 def with_bos_selector_width(s) {
