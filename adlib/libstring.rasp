@@ -1,4 +1,4 @@
-load "base";
+load "adlib";
 load "adlib/libbos";
 
 def add_str_ints(seq, i) {
