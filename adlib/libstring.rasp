@@ -1,4 +1,5 @@
-load "adlib";
+load "base";
+load "adlib/libbos";
 
 def add_str_ints(seq, i) {
     _seq = atoi(seq if seq_bitmask == 1 else "-9");
@@ -11,20 +12,22 @@ def add_str_ints(seq, i) {
 def _incrementing_subseq_lengths(seq) {
     #won't work without zeros separating the subseqs
     #but we split the odds and evens so we'll have them
-    pad = -2;
-    next_is_increment = seq+1 == shift(seq, -1, pad);
-    prev_is_decrement = seq-1 == shift(seq,  1, pad);
-    in_incrementing_subseq = next_is_increment or prev_is_decrement;
-    subseq_mask = seq if in_incrementing_subseq else 0;
+    next_char = shift(seq, -1, -2);
+    prev_char = shift(seq,  1, -2);
+    
+    subseq_mask = seq 
+                    if seq+1 == next_char 
+                    or seq-1 == prev_char 
+                else 0;
 
     #in substring problem we can ensure zeros separate seqs
     subseq_start = (subseq_mask <= prev_char) or (prev_char == 0);
     subseq_end   = (subseq_mask > next_char);
-    bos_pos = 0; #first_(_BOS)
+    bos_pos = 0; #first(BOS)
     boundaries_or_BOS = (subseq_start or subseq_end or (indices == bos_pos));
 
     # get the subseq_end for each subseq_start and subtract their indices
-    end_per_start = _select_next_identical_bos(boundaries_or_BOS) and select(subseq_end, 0, >);
+    end_per_start = select_next_identical_bos(boundaries_or_BOS) and select(subseq_end, 0, >);
     run_lengths = aggregate(end_per_start, seq) - seq + 1; 
     return run_lengths;
 }
@@ -44,16 +47,16 @@ def is_substring(seq) {
         and select(indices - substring_length - 1, indices, >=);
     matches = match_region and select(seq, seq, ==);
 
-    subseqs = 0;
+    bests = 0;
+    # Check odd and even starting indices separately to ensure a gap
     for offset in [0, 1] {
-        candidates = matches and _checkerboard(offset);
-        subseqs = max(subseqs, _incrementing_subseq_lengths(round(aggregate(candidates, indices))));
+        candidates = round(aggregate(matches and checkerboard(offset), indices));
+        runs = _incrementing_subseq_lengths(candidates);
+        bests = max(bests, runs);
     }
+    longest = max_val(bests);
 
     # are there any subsequences found of the right length?
-    return indicator(
-        (substring_length in runs) 
-    and (substring_length > 1)
-    );
+    return indicator((longest == substring_length) and not (longest == 1));
 }
 ################################################## Substring
