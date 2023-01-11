@@ -12,29 +12,29 @@ def jaro(seq){
     longer = max(_source_len, _target_len);
     window = round(longer / 2) - 1;
     match_region = seq_mask
-        and {indices - _target_offset >= indices - window} 
-        and {indices - _target_offset <= indices + window}
-        and {indices >= SEP_IDX} 
-        and {SEP_IDX >= indices};
+        and select(indices - _target_offset, indices - window, >=)
+        and select(indices - _target_offset, indices + window, <=)
+        and select(indices, SEP_IDX, >=) 
+        and select(SEP_IDX, indices, >=);
 
     matches = eq and match_region;
-    match_vec = round(<matches, 1>);
+    match_vec = round(aggregate(matches, 1));
     m = sum(match_vec);
 
     offset_target_idx = indices - _target_offset;
-    exact_ms = matches and {indices == offset_target_idx};
-    exact_ms_vec = <exact_ms, 1>;
+    exact_ms = matches and select(indices,  offset_target_idx, ==);
+    exact_ms_vec = aggregate(exact_ms, 1);
 
     possible_transpositions = 
         matches 
         and not (
-            {1 == exact_ms_vec} 
-        or {exact_ms_vec == 1}
+            select(1, exact_ms_vec, ==) 
+        or  select(exact_ms_vec, 1, ==)
     );
-    new_index = <possible_transpositions, indices>;
+    new_index = aggregate(possible_transpositions, indices);
     transpositions = after and (
-            {new_index < new_index} 
-            and {new_index > 0}
+            select(new_index,  new_index, <) 
+            and select(new_index,  0, >)
         );
     t = sum(0 if new_index < 1 
             else with_bos_selector_width(transpositions));
@@ -61,11 +61,11 @@ def _jaro_winkler(seq, max_prefix_length, prefix_scaling_factor) {
         );
 
     matching_in_prefix = 
-            {indices - _target_offset == indices} 
-        and {prefix_indices == True} 
-        and {tokens == tokens};
+            select(indices - _target_offset,  indices, ==) 
+        and select(prefix_indices,  True, ==) 
+        and select(tokens,  tokens, ==);
 
-    prefix_bitmask = <matching_in_prefix, 1> if indices > 0 else 1;
+    prefix_bitmask = aggregate(matching_in_prefix, 1) if indices > 0 else 1;
     prefix_length  = first(prefix_bitmask, 0) - 1;
 
     return _jaro + ((prefix_length * prefix_scaling_factor) * (1 - _jaro));
