@@ -3,10 +3,8 @@ This is my fork of RASP with some adjustments I wanted, and all of the interface
 RASP is a language for writing algorithms the way they may be implemented in a transformers architecture (or even learned by a transformer trained on the task).  
 The original readme follows below and includes some usage information. Displayed examples will appear different in RASP AD but the results are the same.
 
-``` 
-Like what you see? Citation details available at the bottom, all credit goes to the original authors.  
-"This repo is an implementation of RASP as presented in the paper "Thinking Like Transformers" (https://arxiv.org/abs/2106.06981)."
-```
+_Like what you see? Citation details available at the bottom of the original readme, all credit goes to the original authors._  
+_"This repo is an implementation of RASP as presented in the paper "Thinking Like Transformers" (https://arxiv.org/abs/2106.06981)."_
 
 Almost fully compatible with base RASP with the following exceptions. If you ignore these, it's just RASP as usual:
 - Selectors:

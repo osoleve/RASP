@@ -1,0 +1,76 @@
+load "adlib/libbos";
+
+set example "^Dwayne|Duane$__"
+
+full seq display on
+
+_source_len = SEP_IDX - BOS_IDX - 1;
+_target_len = EOS_IDX - SEP_IDX - 1;
+_target_offset = _source_len + 1;
+
+def jaro(seq){
+    longer = max(_source_len, _target_len);
+    window = round(longer / 2) - 1;
+    match_region = seq_mask
+        and {indices - _target_offset >= indices - window} 
+        and {indices - _target_offset <= indices + window}
+        and {indices >= SEP_IDX} 
+        and {SEP_IDX >= indices};
+
+    matches = eq and match_region;
+    match_vec = round(<matches, 1>);
+    m = sum(match_vec);
+
+    offset_target_idx = indices - _target_offset;
+    exact_ms = matches and {indices == offset_target_idx};
+    exact_ms_vec = <exact_ms, 1>;
+
+    possible_transpositions = 
+        matches 
+        and not (
+            {1 == exact_ms_vec} 
+        or {exact_ms_vec == 1}
+    );
+    new_index = <possible_transpositions, indices>;
+    transpositions = after and (
+            {new_index < new_index} 
+            and {new_index > 0}
+        );
+    t = sum(0 if new_index < 1 
+            else with_bos_selector_width(transpositions));
+
+    m_divisor = max(1, m);
+    _jaro = ((m/_source_len) + (m/_target_len) + ((m - t)/m_divisor))/3;
+    
+    return _jaro;
+}
+
+def _jaro_winkler(seq, max_prefix_length, prefix_scaling_factor) {
+    _jaro = jaro(seq);
+    
+    prefix_indices = 
+        (
+                (indices > BOS_IDX) 
+            and (indices <= (BOS_IDX + max_prefix_length)) 
+            and (indices < SEP_IDX)
+        )
+        or (
+                (indices > SEP_IDX) 
+                and (indices <= (SEP_IDX + max_prefix_length)) 
+                and (indices < EOS_IDX)
+        );
+
+    matching_in_prefix = 
+            {indices - _target_offset == indices} 
+        and {prefix_indices == True} 
+        and {tokens == tokens};
+
+    prefix_bitmask = <matching_in_prefix, 1> if indices > 0 else 1;
+    prefix_length  = first(prefix_bitmask, 0) - 1;
+
+    return _jaro + ((prefix_length * prefix_scaling_factor) * (1 - _jaro));
+}
+
+def jaro_winkler(seq) {
+    return _jaro_winkler(seq, 4, 0.1);
+}

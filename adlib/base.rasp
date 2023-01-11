@@ -1,4 +1,4 @@
-set example "^Hello, World!$_"
+set example "^Hello, World!|Hello$____"
 full seq display on
 
 BOS = "^"; 
@@ -49,6 +49,14 @@ def first(seq, char) {
   return aggregate(select_from_first(seq, char), indices);
 }
 
+BOS_IDX = first(tokens, BOS);
+SEP_IDX = first(tokens, SEP);
+EOS_IDX = first(tokens, EOS);
+
 def max_val(seq){
     return index(sort(seq, -seq), 0);
+}
+
+def sum(seq) {
+    return average(seq * length);
 }

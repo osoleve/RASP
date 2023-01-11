@@ -23,8 +23,8 @@ def _incrementing_subseq_lengths(seq) {
     #in substring problem we can ensure zeros separate seqs
     subseq_start = (subseq_mask <= prev_char) or (prev_char == 0);
     subseq_end   = (subseq_mask > next_char);
-    bos_pos = 0; #first(BOS)
-    boundaries_or_BOS = (subseq_start or subseq_end or (indices == bos_pos));
+    BOS_IDX = 0; #first(BOS)
+    boundaries_or_BOS = (subseq_start or subseq_end or (indices == BOS_IDX));
 
     # get the subseq_end for each subseq_start and subtract their indices
     end_per_start = select_next_identical_bos(boundaries_or_BOS) and select(subseq_end, 0, >);
@@ -35,16 +35,14 @@ def _incrementing_subseq_lengths(seq) {
 def is_substring(seq) {
     # Does not work for substring of length 1
     # Just use the easier way for that
-    sep_pos = first(seq, SEP);
-    eos_pos = first(seq, EOS);
 
-    substring_length = eos_pos - sep_pos - 1;
-    string_length    = sep_pos - 1;
+    source_len = SEP_IDX - BOS_IDX - 1;
+	target_len = EOS_IDX - SEP_IDX - 1;
 
     match_region = ignore_special_tokens 
-        and select(indices, sep_pos, >)
-        and select(indices, indices + string_length + 1, <=)
-        and select(indices - substring_length - 1, indices, >=);
+        and select(indices, SEP_IDX, >)
+        and select(indices, indices + source_len + 1, <=)
+        and select(indices - target_len - 1, indices, >=);
     matches = match_region and select(seq, seq, ==);
 
     bests = 0;
@@ -57,6 +55,5 @@ def is_substring(seq) {
     longest = max_val(bests);
 
     # are there any subsequences found of the right length?
-    return indicator((longest == substring_length) and not (longest == 1));
+    return indicator((longest == target_len) and not (longest == 1));
 }
-################################################## Substring
