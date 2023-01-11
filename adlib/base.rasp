@@ -6,14 +6,14 @@ EOS = "$";
 SEP = "|"; 
 PAD = "_"; 
 
-_k_is_BOS = {tokens == BOS   };
-_k_is_EOS = {tokens == EOS   };
-_k_is_SEP = {tokens == SEP   };
-_k_is_PAD = {tokens == PAD   };
-_q_is_BOS = {BOS    == tokens};
-_q_is_EOS = {EOS    == tokens};
-_q_is_SEP = {SEP    == tokens};
-_q_is_PAD = {PAD    == tokens};
+_k_is_BOS = select(tokens , BOS, ==   );
+_k_is_EOS = select(tokens , EOS, ==   );
+_k_is_SEP = select(tokens , SEP, ==   );
+_k_is_PAD = select(tokens , PAD, ==   );
+_q_is_BOS = select(BOS    , tokens, ==);
+_q_is_EOS = select(EOS    , tokens, ==);
+_q_is_SEP = select(SEP    , tokens, ==);
+_q_is_PAD = select(PAD    , tokens, ==);
 
 key_seq_mask   = not (_k_is_PAD or _k_is_EOS or _k_is_SEP or _k_is_BOS);
 query_seq_mask = not (_q_is_PAD or _q_is_EOS or _q_is_SEP or _q_is_BOS);
