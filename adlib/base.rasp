@@ -17,28 +17,28 @@ _q_is_PAD = {PAD    == tokens};
 
 key_seq_mask   = not (_k_is_PAD or _k_is_EOS or _k_is_SEP or _k_is_BOS);
 query_seq_mask = not (_q_is_PAD or _q_is_EOS or _q_is_SEP or _q_is_BOS);
-seq_mask       = key_seq_mask and query_seq_mask;
-seq_bitmask    = round(aggregate(seq_mask, 1));
-attend_data    = key_seq_mask and query_seq_mask;
-ignore_special_tokens = key_seq_mask and query_seq_mask;
+seq_mask    = key_seq_mask and query_seq_mask;
+seq_bitmask = indicator(not (tokens in [BOS, EOS, SEP, PAD])); #round(aggregate(seq_mask, 1));
+is_special_token      = seq_bitmask;
+ignore_special_tokens = seq_mask;
 
 # IDK if it's better for the compiler to define these explicitly
 # Or if I can define them in terms of each other
-eq  = select(tokens, tokens, ==);
-lt  = select(tokens, tokens, <);
-gt  = select(tokens, tokens, >);
-lte = select(tokens, tokens, <=);
-gte = select(tokens, tokens, >=);
+eq  = ignore_special_tokens and select(tokens, tokens, ==);
+lt  = ignore_special_tokens and select(tokens, tokens, <);
+gt  = ignore_special_tokens and select(tokens, tokens, >);
+lte = ignore_special_tokens and select(tokens, tokens, <=);
+gte = ignore_special_tokens and select(tokens, tokens, >=);
 
-causal = select(indices, indices, <=);
-diag   = select(indices, indices, ==);
-before = select(indices, indices, <);
-after  = select(indices, indices, >);
+causal = ignore_special_tokens and select(indices, indices, <=);
+diag   = ignore_special_tokens and select(indices, indices, ==);
+before = ignore_special_tokens and select(indices, indices, <);
+after  = ignore_special_tokens and select(indices, indices, >);
 
 def checkerboard(offset) {
     black = select((indices + offset) % 2, (indices) % 2, ==) 
         and select((indices) % 2, (indices + offset) % 2, ==); 
-    return black;
+    return ignore_special_tokens and black;
 }
 
 def index(seq, i) { 
