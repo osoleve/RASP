@@ -56,11 +56,18 @@ HEADER = f"""\
     :load "adlib"; at any point to load the after dark base library.
     Rasplib from upstream is still baked in.
     Other libraries are available in the adlib folder.
+
+    adlib assumes input is formatted as "{_BOS}Input{_EOS}" 
+    Special tokens: 
+        Start of Input  (BOS) = {_BOS}
+        End of Input    (EOS) = {_EOS}
+        Input Separator (SEP) = {_SEP}
+        Input Padding   (PAD) = {_PAD}
     
     Happy hacking :)
 
 """
-PROMPT = " ∽≻"
+PROMPT = "  ∽≻"
 
 
 debug = False
@@ -113,7 +120,7 @@ def formatstr(res):
 class REPL:
     def __init__(self):
         self.env = Environment(name="console")
-        self.sequence_running_example = self.add_special_tokens("Exeter|", 8)
+        self.sequence_running_example = self.add_special_tokens("Exeter|", 16)
         self.selector_running_example = self.add_special_tokens("Exeter|Extreme", 16)
         self.sequence_prints_verbose = False
         self.show_sequence_examples = True
@@ -175,7 +182,6 @@ class REPL:
             print(pref, extra_first_pref, "   " + encoder_name + ":", name)
             if self.show_sequence_examples:
                 if self.sequence_prints_verbose:
-                    print(pref, "\t Example:", end="")
                     optional_exampledesc = (
                         name + "(" + formatstr(self.sequence_running_example) + ") ="
                     )
@@ -196,9 +202,6 @@ class REPL:
         elif isinstance(val, UnfinishedSelect):
             print(pref, extra_first_pref, "   selector:", name)
             if self.show_selector_examples:
-                print(
-                    pref, "\t Example:"
-                )  # ,name+"("+formatstr(self.selector_running_example)+") =")
                 print_select(
                     self.selector_running_example,
                     val(self.selector_running_example),
@@ -616,25 +619,28 @@ def print_seq(
 
     example = cleanboolslist(example)
     seqtype = lazy_type_check(seq)
+    typelen = len(str(seqtype))
     seq = cleanboolslist(seq)
     example = [str(v) for v in example]
     seq = [str(v) for v in seq]
     maxlen = max(len(v) for v in example + seq)
 
-    def neatline(seq):
-        def padded(s):
-            return " " * (maxlen - len(s)) + s
+    def padded(s, padding=" "):
+        return padding * (maxlen - len(s)) + s
 
+    def neatline(seq):
         return " ".join(padded(v) for v in seq)
 
+    print(extra_pref, "\t╭" + "─" * 8 + "┬" + "┬".join(padded("─", "─") for _ in seq) + "┬" + "──" * (typelen - 3) + "╮")
     print(
         extra_pref,
-        "\t\tinput:  ",
-        neatline(example),
-        "\t",
-        "(" + lazy_type_check(example) + "s)",
+        "\t│ Input  │" +
+        neatline(example) +
+        "│"+ lazy_type_check(example) + "│ ",
     )
-    print(extra_pref, "\t\toutput: ", neatline(seq), "\t", "(" + seqtype + "s)")
+    print(extra_pref, "\t├" + "─" * 8 + "┼" + "┬".join(padded("─", "─") for _ in seq) + "┼" + "──" * (typelen - 3) + "┤")
+    print(extra_pref, "\t│ Output │" + neatline(seq)+ "│"+ seqtype + "│ ")
+    print(extra_pref, "\t╰" + "─" * 8 + "┴" + "─".join(padded("─", "─") for _ in seq) + "┴" + "──" * (typelen - 3) + "╯")
 
 
 def print_select(example, select, extra_pref=""):
@@ -721,8 +727,6 @@ def print_select(example, select, extra_pref=""):
             f"{' '*max_elem_len}",
             "╰╌╌"+f"{'╌'.join(['╌' for _ in example])}╯"+side_footer+"\n",
             )
-    if nonzero_elems:
-        print(f"{offset}Sparsity: {100*sparsity:.1f}%\n\n")
 
 
 if __name__ == "__main__":
