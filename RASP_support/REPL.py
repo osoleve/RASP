@@ -632,16 +632,23 @@ def print_seq(
     def neatline(seq):
         return " ".join(padded(v) for v in seq)
 
-    print(extra_pref, "\t╭" + "─" * 8 + "┬" + "┬".join(padded("─", "─") for _ in seq) + "┬" + "──" * (typelen - 2) + "╮")
+    print(extra_pref, "\t╭" + "─" * 8 + "┬─" + "┬".join(padded("─", "─") for _ in seq) + "─┬" + "──" * (typelen - 2) + "╮")
     print(
         extra_pref,
-        "\t│ Input  │" +
-        neatline(example) +
-        f"│{extype:>{typelen+1}} │ ",
+        "\t│ Index  │ " +
+        neatline(map(str, range(len(example)))) +
+        f" │ {'':->{typelen}} │ ",
     )
-    print(extra_pref, "\t├" + "─" * 8 + "┼" + "┬".join(padded("─", "─") for _ in seq) + "┼" + "──" * (typelen - 2) + "┤")
-    print(extra_pref, "\t│ Output │" + neatline(seq)+ f"│ {seqtype:>{typelen}} │ ")
-    print(extra_pref, "\t╰" + "─" * 8 + "┴" + "─".join(padded("─", "─") for _ in seq) + "┴" + "──" * (typelen - 2) + "╯")
+    print(extra_pref, "\t├" + "─" * 8 + "┼─" + "┬".join(padded("─", "─") for _ in seq) + "─┼" + "──" * (typelen - 2) + "┤")
+    print(
+        extra_pref,
+        "\t│ Input  │ " +
+        neatline(example) +
+        f" │ {extype:>{typelen}} │ ",
+    )
+    print(extra_pref, "\t├" + "─" * 8 + "┼─" + "┬".join(padded("─", "─") for _ in seq) + "─┼" + "──" * (typelen - 2) + "┤")
+    print(extra_pref, "\t│ Output │ " + neatline(seq)+ f" │ {seqtype:>{typelen}} │ ")
+    print(extra_pref, "\t╰" + "─" * 8 + "┴─" + "─".join(padded("─", "─") for _ in seq) + "─┴" + "──" * (typelen - 2) + "╯")
 
 
 def print_select(example, select, extra_pref=""):
@@ -655,7 +662,7 @@ def print_select(example, select, extra_pref=""):
         query_num = query_num if query_num else ' '
         
         line = " ".join(SQUARE if v else BLANK for v in m)
-        line = line + f" ┊    ┊{i:^7}┊{key_num:^8}┊{query_num:^8}┊"
+        line = line + f" ┊    ┊{i:>4} ┊{key_num:>5}  ┊{query_num:>5}  ┊"
         return line
 
     def isnum(s):
@@ -678,9 +685,9 @@ def print_select(example, select, extra_pref=""):
     side_subhead = ""
     side_footer = ""
     if nonzero_elems:
-        side_header = "        Index     Row     Col "
-        side_subhead  = "    ╭╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╮"
-        side_footer = "    ╰╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╯"
+        side_header = "         i     Row     Col "
+        side_subhead  = "    ╭╌╌╌╌╌┬╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╮"
+        side_footer   = "    ╰╌╌╌╌╌┴╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╯"
     
     print()
      
