@@ -618,8 +618,9 @@ def print_seq(
             return seq
 
     example = cleanboolslist(example)
+    extype = lazy_type_check(example)
     seqtype = lazy_type_check(seq)
-    typelen = len(str(seqtype))
+    typelen = max(map(len, map(str, (extype, seqtype))))
     seq = cleanboolslist(seq)
     example = [str(v) for v in example]
     seq = [str(v) for v in seq]
@@ -631,16 +632,16 @@ def print_seq(
     def neatline(seq):
         return " ".join(padded(v) for v in seq)
 
-    print(extra_pref, "\t╭" + "─" * 8 + "┬" + "┬".join(padded("─", "─") for _ in seq) + "┬" + "──" * (typelen - 3) + "╮")
+    print(extra_pref, "\t╭" + "─" * 8 + "┬" + "┬".join(padded("─", "─") for _ in seq) + "┬" + "──" * (typelen - 2) + "╮")
     print(
         extra_pref,
         "\t│ Input  │" +
         neatline(example) +
-        "│"+ lazy_type_check(example) + "│ ",
+        f"│{extype:>{typelen+1}} │ ",
     )
-    print(extra_pref, "\t├" + "─" * 8 + "┼" + "┬".join(padded("─", "─") for _ in seq) + "┼" + "──" * (typelen - 3) + "┤")
-    print(extra_pref, "\t│ Output │" + neatline(seq)+ "│"+ seqtype + "│ ")
-    print(extra_pref, "\t╰" + "─" * 8 + "┴" + "─".join(padded("─", "─") for _ in seq) + "┴" + "──" * (typelen - 3) + "╯")
+    print(extra_pref, "\t├" + "─" * 8 + "┼" + "┬".join(padded("─", "─") for _ in seq) + "┼" + "──" * (typelen - 2) + "┤")
+    print(extra_pref, "\t│ Output │" + neatline(seq)+ f"│ {seqtype:>{typelen}} │ ")
+    print(extra_pref, "\t╰" + "─" * 8 + "┴" + "─".join(padded("─", "─") for _ in seq) + "┴" + "──" * (typelen - 2) + "╯")
 
 
 def print_select(example, select, extra_pref=""):
@@ -648,15 +649,13 @@ def print_select(example, select, extra_pref=""):
         m = matrix[i]
 
         key_num = sum(1 if v else 0 for v in m)
-        key_density = f" / {int(100 * key_num/len(m)):>3}%"
-        key_density = f'{key_num} {key_density:>7}' if key_num else ' '
+        key_num = key_num if key_num else ' '
 
         query_num = sum(1 if _m[i] else 0 for _m in matrix.values())
-        query_density = f" / {int(100 * query_num/len(m)):>3}%"
-        query_density = f'{query_num} {query_density:>7}' if query_num else ' '
+        query_num = query_num if query_num else ' '
         
         line = " ".join(SQUARE if v else BLANK for v in m)
-        line = line + f" ┊    ┊{i:^7}┊{key_density:>12}  ┊{query_density:>12}  ┊"
+        line = line + f" ┊    ┊{i:^7}┊{key_num:^8}┊{query_num:^8}┊"
         return line
 
     def isnum(s):
@@ -679,9 +678,9 @@ def print_select(example, select, extra_pref=""):
     side_subhead = ""
     side_footer = ""
     if nonzero_elems:
-        side_header = "        Index     On by Row     On by Col "
-        side_subhead  = "    ╭╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮"
-        side_footer = "    ╰╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╌╌╌╌╌╌╯"
+        side_header = "        Index     Row     Col "
+        side_subhead  = "    ╭╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌┬╌╌╌╌╌╌╌╌╮"
+        side_footer = "    ╰╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌┴╌╌╌╌╌╌╌╌╯"
     
     print()
      
