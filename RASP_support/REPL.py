@@ -624,7 +624,7 @@ def print_seq(
     seq = cleanboolslist(seq)
     example = [str(v) for v in example]
     seq = [str(v) for v in seq]
-    maxlen = max(len(v) for v in example + seq)
+    maxlen = max(len(v) for v in example + seq + [str(x) for x in range(len(example))])
 
     def padded(s, padding=" "):
         return padding * (maxlen - len(s)) + s
