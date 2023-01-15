@@ -52,32 +52,3 @@ def first(seq, char) {
 BOS_IDX = first(tokens, BOS);
 SEP_IDX = first(tokens, SEP);
 EOS_IDX = first(tokens, EOS);
-
-def max_val(seq){
-    return index(sort(seq, -seq), 0);
-}
-
-def nonzero_elems(seq) {
-    return sum(indicator(seq > 0));
-}
-
-def reciprocal(seq){
-    _seq = seq if seq > 0 else 1;
-    _seq = 1/_seq;
-    _seq = _seq if seq > 0 else 0;
-    return _seq;
-}
-
-def sum(seq) {
-    return average(seq * length);
-}
-
-def nonzero_mean(seq) {
-    return sum(seq)/nonzero_elems(seq);
-}
-nz_mean = nonzero_mean;
-
-def nonzero_harmonic_mean(seq) {
-    return reciprocal(nonzero_mean(reciprocal(seq)));
-}
-nz_harmonic_mean = nonzero_harmonic_mean;
