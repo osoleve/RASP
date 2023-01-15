@@ -1,14 +1,16 @@
 load "adlib";
 load "adlib/libbos";
+load "adlib/libmath";
 
-def add_str_ints(seq, i) {
-    _seq = atoi(seq if seq_bitmask == 1 else "-9");
-    _seq = itoa(_seq + i);
-    _seq = _seq if seq_bitmask == 1 else seq;
-    return _seq;
-}
+# below assumes the source and target strings
+# are formatted in one string as
+# [BOS]source[SEP]target[EOS]
 
-################################################## Substring
+source_len = SEP_IDX - BOS_IDX - 1;
+target_len = EOS_IDX - SEP_IDX - 1;
+target_offset = source_len + 1;
+
+############################################################### Substring
 def _incrementing_subseq_lengths(seq) {
     #won't work without zeros separating the subseqs
     #but we split the odds and evens so we'll have them
@@ -36,9 +38,6 @@ def is_substring(seq) {
     # Does not work for substring of length 1
     # Just use the easier way for that
 
-    source_len = SEP_IDX - BOS_IDX - 1;
-	target_len = EOS_IDX - SEP_IDX - 1;
-
     match_region = ignore_special_tokens 
         and select(indices, SEP_IDX, >)
         and select(indices, indices + source_len + 1, <=)
@@ -56,4 +55,72 @@ def is_substring(seq) {
 
     # are there any subsequences found of the right length?
     return indicator((longest == target_len) and not (longest == 1));
+}
+
+############################################################### Jaro/Jaro-Winkler
+def jaro(seq){
+    longer = max(source_len, target_len);
+    window = round(longer / 2) - 1;
+    match_region = seq_mask
+        and select(indices - target_offset, indices - window, >=)
+        and select(indices - target_offset, indices + window, <=)
+        and select(indices, SEP_IDX, >=) 
+        and select(SEP_IDX, indices, >=);
+
+    matches = eq and match_region;
+    match_vec = round(aggregate(matches, 1));
+    m = sum(match_vec);
+
+    offset_target_idx = indices - target_offset;
+    exact_ms = matches and select(indices,  offset_target_idx, ==);
+    exact_ms_vec = aggregate(exact_ms, 1);
+
+    possible_transpositions = 
+        matches 
+        and not (
+            select(1, exact_ms_vec, ==) 
+        or  select(exact_ms_vec, 1, ==)
+    );
+    new_index = aggregate(possible_transpositions, indices);
+    transpositions = after and (
+            select(new_index,  new_index, <) 
+            and select(new_index,  0, >)
+        );
+    t = sum(0 if new_index < 1 
+            else with_bos_selector_width(transpositions));
+
+    m_divisor = max(1, m);
+    _jaro = ((m/source_len) + (m/target_len) + ((m - t)/m_divisor))/3;
+    
+    return _jaro;
+}
+
+def _jaro_winkler(seq, max_prefix_length, prefix_scaling_factor) {
+    _jaro = jaro(seq);
+    
+    prefix_indices = 
+        (
+                (indices > BOS_IDX) 
+            and (indices <= (BOS_IDX + max_prefix_length)) 
+            and (indices < SEP_IDX)
+        )
+        or (
+                (indices > SEP_IDX) 
+                and (indices <= (SEP_IDX + max_prefix_length)) 
+                and (indices < EOS_IDX)
+        );
+
+    matching_in_prefix = 
+            select(indices - target_offset,  indices, ==) 
+        and select(prefix_indices,  True, ==) 
+        and select(tokens,  tokens, ==);
+
+    prefix_bitmask = aggregate(matching_in_prefix, 1) if indices > 0 else 1;
+    prefix_length  = first(prefix_bitmask, 0) - 1;
+
+    return _jaro + ((prefix_length * prefix_scaling_factor) * (1 - _jaro));
+}
+
+def jaro_winkler(seq) {
+    return _jaro_winkler(seq, 4, 0.1);
 }
