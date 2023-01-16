@@ -1,6 +1,6 @@
 load "adlib";
-load "adlib/libbos";
-load "adlib/libmath";
+load "adlib/bos";
+load "adlib/math";
 
 # below assumes the source and target strings
 # are formatted in one string as
@@ -8,7 +8,11 @@ load "adlib/libmath";
 
 source_len = SEP_IDX - BOS_IDX - 1;
 target_len = EOS_IDX - SEP_IDX - 1;
-target_offset = source_len + 1;
+
+def get_offset(seq) {
+    return SEP_IDX - BOS_IDX;
+}
+target_offset = get_offset(tokens);
 
 ############################################################### Substring
 def _incrementing_subseq_lengths(seq) {
